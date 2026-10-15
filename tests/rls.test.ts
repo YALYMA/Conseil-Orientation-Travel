@@ -104,7 +104,9 @@ describe("RLS — paiements & commandes", () => {
 
 describe("RBAC — élévation de privilège", () => {
   it("un étudiant ne peut pas se promouvoir admin", async () => {
-    await expect(asUser(db, A, `update profiles set role='admin' where id='${A}'`)).rejects.toThrow();
+    // Plus de politique d'écriture sur profiles pour un étudiant : la modification n'a aucun effet.
+    const upd = await asUser(db, A, `update profiles set role='admin' where id='${A}' returning id`).catch(() => ({ rows: [] }));
+    expect(upd.rows).toHaveLength(0);
     const r = await db.query<{ role: string }>("select role from profiles where id=$1", [A]);
     expect(r.rows[0].role).toBe("student");
   });
@@ -129,9 +131,13 @@ describe("Stockage privé", () => {
     const r = await db.query<{ public: boolean }>("select public from storage.buckets where id='documents'");
     expect(r.rows[0].public).toBe(false);
   });
-  it("un étudiant ne peut déposer que dans son propre dossier", async () => {
+  it("un étudiant ne peut PLUS écrire dans le stockage (dépôt réservé au serveur)", async () => {
     await expect(asUser(db, A, `insert into storage.objects (bucket_id,name) values ('documents','${B}/hack.pdf')`)).rejects.toThrow();
-    await expect(asUser(db, A, `insert into storage.objects (bucket_id,name) values ('documents','${A}/ok.pdf')`)).resolves.toBeTruthy();
+    await expect(asUser(db, A, `insert into storage.objects (bucket_id,name) values ('documents','${A}/ok.pdf')`)).rejects.toThrow();
+  });
+  it("un fichier du bucket est lisible par son propriétaire et son conseiller", async () => {
+    await db.query("insert into storage.objects (bucket_id,name) values ('documents', $1)", [`${A}/ok.pdf`]);
+    expect((await asUser(db, A, `select name from storage.objects where bucket_id='documents'`)).rows).toHaveLength(1);
   });
   it("un autre étudiant ne peut pas lire l'objet", async () => {
     expect((await asUser(db, B, `select * from storage.objects where name like '${A}/%'`)).rows).toHaveLength(0);

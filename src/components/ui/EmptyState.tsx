@@ -2,7 +2,7 @@ export function EmptyState({ title, text, action }: { title: string; text: strin
   return (
     <div className="rounded-xl border border-dashed border-navy/20 bg-white p-8 text-center">
       <p className="font-semibold">{title}</p>
-      <p className="mx-auto mt-1 max-w-md text-sm text-navy/70">{text}</p>
+      <p className="mx-auto mt-1 max-w-md text-sm text-navy/75">{text}</p>
       {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
   );

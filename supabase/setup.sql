@@ -1,5 +1,4 @@
-
--- Conseil-Orientation-Travel — installation complète de la base (8 migrations).
+-- Conseil-Orientation-Travel — installation complète de la base (10 migrations).
 -- FICHIER GÉNÉRÉ par « npm run sql:bundle » : ne pas modifier à la main.
 -- À exécuter UNE SEULE FOIS sur un projet Supabase vide, puis supabase/seed.sql.
 
@@ -459,23 +458,23 @@ end $$;
 -- ════════════════════════════════════════════════════════════
 -- Fonctions d'aide (SECURITY DEFINER pour éviter la récursion RLS)
 create or replace function current_role_code() returns text
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select role from profiles where id = auth.uid() and is_active
 $$;
 
 create or replace function is_admin() returns boolean
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select coalesce(current_role_code() = 'admin', false)
 $$;
 
 create or replace function is_staff() returns boolean
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select coalesce(current_role_code() in ('advisor','admin'), false)
 $$;
 
 -- Vrai si l'utilisateur courant est l'étudiant, son conseiller assigné, ou un admin
 create or replace function can_access_student(sid uuid) returns boolean
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select auth.uid() is not null and (
     auth.uid() = sid
     or is_admin()
@@ -485,7 +484,7 @@ $$;
 
 -- Création automatique du profil à l'inscription : TOUJOURS étudiant (le rôle ne vient jamais des métadonnées client)
 create or replace function handle_new_user() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   insert into profiles (id, role, full_name, phone)
   values (new.id, 'student', new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'phone');
@@ -497,7 +496,7 @@ create trigger on_auth_user_created after insert on auth.users for each row exec
 
 -- Empêche l'élévation de privilège : seul un admin peut changer role / is_active
 create or replace function guard_profile_update() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if (new.role is distinct from old.role or new.is_active is distinct from old.is_active)
      and not (auth.role() = 'service_role' or is_admin()) then
@@ -509,7 +508,7 @@ create trigger trg_profiles_guard before update on profiles for each row execute
 
 -- Empêche l'étudiant de se réassigner un conseiller
 create or replace function guard_student_update() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if new.advisor_id is distinct from old.advisor_id and not (auth.role() = 'service_role' or is_admin()) then
     raise exception 'Assignation réservée aux administrateurs';
@@ -520,7 +519,7 @@ create trigger trg_students_guard before update on students for each row execute
 
 -- Les montants d'une commande sont immuables côté client
 create or replace function guard_order_update() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if (new.price_total, new.first_amount, new.balance_amount, new.pack_id, new.student_id)
      is distinct from (old.price_total, old.first_amount, old.balance_amount, old.pack_id, old.student_id)
@@ -691,7 +690,7 @@ insert into order_transitions values
 
 -- Transition interne (non appelable par les clients)
 create or replace function internal_transition(p_order uuid, p_to text, p_actor text, p_reason text)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare cur text; req boolean;
 begin
   select status into cur from orders where id = p_order for update;
@@ -705,13 +704,13 @@ begin
 end $$;
 
 create or replace function notify_user(p_user uuid, p_kind text, p_title text, p_body text, p_link text)
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public, pg_temp as $$
   insert into notifications (user_id, kind, title, body, link) values (p_user, p_kind, p_title, p_body, p_link)
 $$;
 
 -- Étudiant : crée une commande. Le prix est lu en base, le 50/50 calculé ici.
 create or replace function create_order(p_pack_slug text, p_country_id uuid default null)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare pack service_packs; first_amt int; oid uuid;
 begin
   if auth.uid() is null or coalesce(current_role_code(), '') <> 'student' then raise exception 'Réservé aux étudiants'; end if;
@@ -732,7 +731,7 @@ end $$;
 
 -- Étudiant : déclare une preuve (WhatsApp). Ne valide JAMAIS le paiement.
 create or replace function submit_payment_proof(p_order uuid, p_wave_ref text default null, p_note text default null)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare o orders; stg text; nxt text; pid uuid; sid uuid;
 begin
   select * into o from orders where id = p_order;
@@ -754,7 +753,7 @@ begin
 end $$;
 
 create or replace function student_cancel_order(p_order uuid, p_reason text)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare o orders;
 begin
   select * into o from orders where id = p_order;
@@ -764,7 +763,7 @@ end $$;
 
 -- Staff : fait avancer une commande (conseiller assigné ou admin). Effets de bord sur les paiements.
 create or replace function staff_transition(p_order uuid, p_to text, p_reason text default null)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare o orders; r text;
 begin
   r := current_role_code();
@@ -812,7 +811,7 @@ grant execute on function create_order(text, uuid), submit_payment_proof(uuid, t
 -- Opérations d'administration et de documents : toutes journalisées, toutes contrôlées en base.
 
 create or replace function admin_set_role(p_user uuid, p_role text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare old_role text;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -827,7 +826,7 @@ begin
 end $$;
 
 create or replace function admin_assign_advisor(p_student uuid, p_advisor uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
   if p_advisor is not null and not exists (select 1 from profiles where id = p_advisor and role = 'advisor' and is_active) then
@@ -844,7 +843,7 @@ begin
 end $$;
 
 create or replace function admin_update_setting(p_key text, p_value jsonb) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare phone text; url text;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -861,7 +860,7 @@ end $$;
 
 -- Dépôt d'un document (nouveau ou nouvelle version). Le fichier est déjà dans le bucket privé.
 create or replace function register_document_upload(p_category text, p_name text, p_path text, p_mime text, p_size int, p_document uuid default null)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare did uuid; ver int; st text; sid uuid;
 begin
   if auth.uid() is null or coalesce(current_role_code(), '') <> 'student' then raise exception 'Réservé aux étudiants'; end if;
@@ -887,7 +886,7 @@ begin
 end $$;
 
 create or replace function review_document(p_document uuid, p_status text, p_comment text default null) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare d documents;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -949,7 +948,7 @@ insert into application_transitions values
 
 create or replace function staff_create_application(p_student uuid, p_institution_name text, p_program_name text, p_country uuid,
   p_year text, p_procedure text default null, p_program uuid default null) returns uuid
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare aid uuid;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -964,7 +963,7 @@ begin
 end $$;
 
 create or replace function staff_move_application(p_app uuid, p_to text, p_note text default null) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare a applications;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -984,7 +983,7 @@ begin
 end $$;
 
 create or replace function staff_create_appointment(p_student uuid, p_starts_at timestamptz, p_duration int, p_kind text, p_url text default null, p_notes text default null)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare aid uuid; adv uuid;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -1002,7 +1001,7 @@ begin
 end $$;
 
 create or replace function student_respond_appointment(p_id uuid, p_status text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare ap appointments;
 begin
   if p_status not in ('confirmed','cancelled') then raise exception 'Statut invalide'; end if;
@@ -1014,7 +1013,7 @@ begin
 end $$;
 
 create or replace function staff_set_appointment_status(p_id uuid, p_status text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare ap appointments;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -1027,7 +1026,7 @@ begin
 end $$;
 
 create or replace function send_message(p_conversation uuid, p_body text) returns uuid
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare c conversations; mid uuid; body text := trim(coalesce(p_body, ''));
 begin
   select * into c from conversations where id = p_conversation;
@@ -1043,7 +1042,7 @@ begin
 end $$;
 
 create or replace function mark_conversation_read(p_conversation uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare c conversations;
 begin
   select * into c from conversations where id = p_conversation;
@@ -1071,7 +1070,7 @@ grant execute on function staff_create_application(uuid, text, text, uuid, text,
 -- L'entretien est déduit des rendez-vous ; le reste de la progression est calculé depuis les données réelles.
 
 create or replace function save_project(p_student uuid, p_country uuid, p_level text, p_domain text, p_year int, p_goal text, p_budget text)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare cur student_projects; changed text[] := '{}'; pid uuid;
 begin
   if auth.uid() is null or not can_access_student(p_student) then raise exception 'Accès refusé'; end if;
@@ -1100,7 +1099,7 @@ begin
 end $$;
 
 create or replace function staff_set_step(p_student uuid, p_code text, p_status text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
   if not can_access_student(p_student) then raise exception 'Accès refusé'; end if;
@@ -1131,7 +1130,7 @@ create policy steps_read on project_steps for select
 create or replace function admin_save_pack(
   p_id uuid, p_slug text, p_name text, p_tagline text, p_description text, p_price int, p_badge text, p_duration text,
   p_apps int, p_deliverables text[], p_excluded text[], p_features jsonb, p_active boolean, p_sort int)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare pid uuid; old_price int; meta jsonb := '{}';
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -1169,7 +1168,7 @@ end $$;
 create or replace function admin_save_country(
   p_id uuid, p_slug text, p_name text, p_flag text, p_summary text, p_description text, p_types text[],
   p_budget text, p_visa text, p_housing text, p_links jsonb, p_published boolean, p_sort int)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare cid uuid; l jsonb;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -1196,7 +1195,7 @@ begin
 end $$;
 
 create or replace function admin_save_procedure(p_id uuid, p_country uuid, p_title text, p_body text, p_docs text[], p_url text, p_verified date, p_sort int)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare rid uuid;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -1216,7 +1215,7 @@ begin
 end $$;
 
 create or replace function admin_delete_procedure(p_id uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
   delete from country_procedures where id = p_id;
@@ -1225,7 +1224,7 @@ begin
 end $$;
 
 create or replace function admin_save_faq(p_id uuid, p_question text, p_answer text, p_sort int, p_published boolean) returns uuid
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare fid uuid;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -1241,7 +1240,7 @@ begin
 end $$;
 
 create or replace function admin_delete_faq(p_id uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
   delete from faqs where id = p_id;
@@ -1275,7 +1274,7 @@ drop policy if exists faqs_admin on faqs;
 -- Réservée au rôle service (appelée uniquement depuis le serveur Next.js) : un client ne peut pas
 -- l'appeler pour remplir la table ou épuiser le quota d'un tiers.
 create or replace function rate_limit_hit(p_bucket text, p_limit int, p_window_seconds int)
-returns boolean language plpgsql security definer set search_path = public as $$
+returns boolean language plpgsql security definer set search_path = public, pg_temp as $$
 declare w timestamptz; n int;
 begin
   if p_bucket is null or length(p_bucket) > 200 or p_limit < 1 or p_window_seconds < 1 or p_window_seconds > 86400 then
@@ -1293,7 +1292,7 @@ grant execute on function rate_limit_hit(text, int, int) to service_role;
 
 -- Consultation d'un document par le personnel : tracée (la consultation par le propriétaire ne l'est pas).
 create or replace function log_document_access(p_document uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare d documents;
 begin
   select * into d from documents where id = p_document;
@@ -1304,3 +1303,150 @@ begin
 end $$;
 revoke execute on function log_document_access(uuid) from public, anon;
 grant execute on function log_document_access(uuid) to authenticated;
+
+-- ════════════════════════════════════════════════════════════
+-- 20261004000009_hardening.sql
+-- ════════════════════════════════════════════════════════════
+-- Durcissement issu de l'audit de sécurité : on supprime les écritures directes qui contournaient les règles métier.
+
+-- ─── 1. Stockage : plus aucune écriture/suppression directe par les clients ────────────────────────────
+-- Seul le serveur (clé de service, après validation) dépose et supprime. Un étudiant ne peut donc plus
+-- contourner la validation des fichiers, ni effacer le fichier d'un document déjà validé.
+drop policy if exists storage_docs_insert on storage.objects;
+drop policy if exists storage_docs_delete on storage.objects;
+drop policy if exists storage_docs_select on storage.objects;
+-- Lecture : comparaison de texte (pas de conversion en uuid : un nom inattendu ne fait plus échouer la requête).
+create policy storage_docs_select on storage.objects for select to authenticated
+  using (bucket_id = 'documents' and (
+    (storage.foldername(name))[1] = auth.uid()::text
+    or is_admin()
+    or exists (select 1 from students s where s.id::text = (storage.foldername(name))[1] and s.advisor_id = auth.uid())
+  ));
+
+-- ─── 2. Réglages (numéro Wave, WhatsApp…) : écriture UNIQUEMENT via admin_update_setting (validation + audit) ──
+drop policy if exists settings_admin on site_settings;
+
+-- ─── 3. Documents : suppression via fonction (audit + chemins renvoyés pour nettoyer le stockage) ───────
+drop policy if exists docs_delete on documents;
+create or replace function delete_document(p_document uuid) returns text[]
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare d documents; paths text[];
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  select * into d from documents where id = p_document;
+  -- même message pour « absent » et « pas à vous » : pas d'énumération
+  if not found or not (d.student_id = auth.uid() or is_admin()) then raise exception 'Document introuvable'; end if;
+  if d.status = 'validated' and not is_admin() then raise exception 'Un document validé ne peut pas être supprimé'; end if;
+  select coalesce(array_agg(storage_path), '{}') into paths from document_versions where document_id = p_document;
+  delete from documents where id = p_document;
+  insert into audit_logs (actor_id, action, resource, resource_id, metadata)
+  values (auth.uid(), 'document.deleted', 'documents', p_document, jsonb_build_object('versions', coalesce(array_length(paths, 1), 0), 'by_admin', d.student_id <> auth.uid()));
+  return paths;
+end $$;
+
+-- ─── 4. Notifications : on ne peut que marquer comme lu (pas modifier titre / lien) ──────────────────────
+drop policy if exists notif_update on notifications;
+create or replace function mark_notifications_read(p_ids uuid[] default null) returns int
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare n int;
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  update notifications set read_at = now() where user_id = auth.uid() and read_at is null and (p_ids is null or id = any(p_ids));
+  get diagnostics n = row_count;
+  return n;
+end $$;
+
+-- ─── 5. Profils : mise à jour validée ; contraintes de format et de longueur ────────────────────────────
+drop policy if exists profiles_update_self on profiles;
+create policy profiles_update_admin on profiles for update using (is_admin()) with check (is_admin());
+alter table profiles add constraint profiles_name_len check (full_name is null or length(full_name) <= 120);
+alter table profiles add constraint profiles_phone_fmt check (phone is null or phone ~ '^\+?[0-9 ]{8,18}$');
+alter table students add constraint students_city_len check (city is null or length(city) <= 80);
+alter table students add constraint students_level_len check (current_level is null or length(current_level) <= 40);
+
+create or replace function update_my_profile(p_name text, p_phone text) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare nm text := trim(coalesce(p_name, '')); ph text := trim(coalesce(p_phone, ''));
+begin
+  if auth.uid() is null then raise exception 'Connexion requise'; end if;
+  if length(nm) not between 2 and 120 then raise exception 'Nom invalide'; end if;
+  if ph !~ '^\+?[0-9 ]{8,18}$' then raise exception 'Numéro de téléphone invalide'; end if;
+  update profiles set full_name = nm, phone = ph where id = auth.uid();
+end $$;
+
+-- L'inscription peut se faire directement via l'API Supabase (clé publique) : on assainit au lieu d'échouer.
+create or replace function handle_new_user() returns trigger
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare nm text := nullif(left(trim(coalesce(new.raw_user_meta_data->>'full_name', '')), 120), '');
+        ph text := new.raw_user_meta_data->>'phone';
+begin
+  if ph is null or ph !~ '^\+?[0-9 ]{8,18}$' then ph := null; end if;
+  insert into profiles (id, role, full_name, phone) values (new.id, 'student', nm, ph);
+  insert into students (id) values (new.id);
+  insert into conversations (student_id) values (new.id);
+  return new;
+end $$;
+
+-- ─── 6. Droits d'exécution : fonctions de déclencheur non appelables, nouvelles fonctions réservées aux connectés ──
+revoke execute on function handle_new_user(), guard_profile_update(), guard_student_update(), guard_order_update(), set_updated_at() from public, anon, authenticated;
+revoke execute on function delete_document(uuid), mark_notifications_read(uuid[]), update_my_profile(text, text) from public, anon;
+grant execute on function delete_document(uuid), mark_notifications_read(uuid[]), update_my_profile(text, text) to authenticated;
+
+-- ════════════════════════════════════════════════════════════
+-- 20261004000010_role_audit.sql
+-- ════════════════════════════════════════════════════════════
+-- Audit des changements de rôle / d'activation, QUEL QUE SOIT le chemin (fonction admin, mise à jour directe par un admin,
+-- éditeur SQL). Avant : seul admin_set_role journalisait, une mise à jour directe passait sans trace.
+
+create or replace function audit_profile_changes() returns trigger
+language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if new.role is distinct from old.role then
+    insert into audit_logs (actor_id, action, resource, resource_id, metadata)
+    values (auth.uid(), 'user.role_changed', 'profiles', new.id, jsonb_build_object('from', old.role, 'to', new.role));
+  end if;
+  if new.is_active is distinct from old.is_active then
+    insert into audit_logs (actor_id, action, resource, resource_id, metadata)
+    values (auth.uid(), 'user.status_changed', 'profiles', new.id, jsonb_build_object('active', new.is_active));
+  end if;
+  return null;
+end $$;
+revoke execute on function audit_profile_changes() from public, anon, authenticated;
+
+create trigger trg_profiles_audit after update of role, is_active on profiles for each row execute function audit_profile_changes();
+
+-- admin_set_role ne journalise plus lui-même (le déclencheur s'en charge) : une seule ligne par changement.
+create or replace function admin_set_role(p_user uuid, p_role text) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare old_role text;
+begin
+  if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
+  if p_role not in ('student','advisor','admin') then raise exception 'Rôle invalide'; end if;
+  if p_user = auth.uid() then raise exception 'Vous ne pouvez pas modifier votre propre rôle'; end if;
+  select role into old_role from profiles where id = p_user;
+  if old_role is null then raise exception 'Utilisateur introuvable'; end if;
+  update profiles set role = p_role where id = p_user;
+  if p_role = 'advisor' then insert into advisors (id) values (p_user) on conflict do nothing; end if;
+end $$;
+
+-- ─── Un compte désactivé perd immédiatement l'accès aux données (et pas seulement à la prochaine connexion) ───
+-- Avant : can_access_student() ne vérifiait pas is_active. Un conseiller désactivé gardait la lecture de tous les dossiers
+-- de ses étudiants (et les liens signés de leurs pièces d'identité) tant que son jeton de session restait valide.
+-- current_role_code() renvoie NULL pour un profil inactif.
+create or replace function can_access_student(sid uuid) returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select auth.uid() is not null and current_role_code() is not null and (
+    auth.uid() = sid
+    or is_admin()
+    or exists (select 1 from students s where s.id = sid and s.advisor_id = auth.uid())
+  )
+$$;
+
+-- Stockage : même règle pour la lecture des fichiers (le chemin commence par l'identifiant de l'étudiant).
+drop policy if exists storage_docs_select on storage.objects;
+create policy storage_docs_select on storage.objects for select to authenticated
+  using (bucket_id = 'documents' and current_role_code() is not null and (
+    (storage.foldername(name))[1] = auth.uid()::text
+    or is_admin()
+    or exists (select 1 from students s where s.id::text = (storage.foldername(name))[1] and s.advisor_id = auth.uid())
+  ));

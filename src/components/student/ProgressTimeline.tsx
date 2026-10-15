@@ -9,7 +9,7 @@ export function ProgressTimeline({ progress }: { progress: Overview["progress"] 
         {progress.steps.map((s) => (
           <li key={s.key} className="flex items-center gap-2">
             <span aria-hidden className={s.done ? "text-success" : "text-navy/40"}>{s.done ? "✓" : "○"}</span>
-            <span className={s.done ? "font-medium" : "text-navy/70"}>{s.label}</span>
+            <span className={s.done ? "font-medium" : "text-navy/75"}>{s.label}</span>
             <span className="sr-only">{s.done ? "terminé" : "à faire"}</span>
           </li>
         ))}

@@ -16,10 +16,10 @@ export async function getSessionProfile(): Promise<SessionProfile | null> {
   if (!data.user) return null;
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role, full_name")
+    .select("id, role, full_name, is_active")
     .eq("id", data.user.id)
     .single();
-  if (!profile) return null;
+  if (!profile || !profile.is_active) return null; // compte désactivé : traité comme déconnecté
   return { id: profile.id, email: data.user.email ?? "", role: profile.role as Role, fullName: profile.full_name };
 }
 

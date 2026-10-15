@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { respondAppointment } from "@/app/shared-actions";
+import { Flash } from "@/components/staff/Flash";
 
 export const metadata: Metadata = { title: "Mes rendez-vous", robots: { index: false } };
 export const APPT_LABELS: Record<string, string> = { planned: "Planifié", confirmed: "Confirmé", done: "Terminé", cancelled: "Annulé", no_show: "Absent" };
@@ -17,9 +18,8 @@ export default async function AppointmentsPage({ searchParams }: { searchParams:
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <h1 className="font-display text-2xl font-extrabold">Mes rendez-vous</h1>
-      <p className="text-sm text-navy/70">Les heures sont affichées à l&apos;heure de Dakar (GMT).</p>
-      {ok && <p role="status" className="rounded-lg bg-[#dff5ea] p-3 text-sm font-medium text-[#0d7a50]">{ok.slice(0, 120)}</p>}
-      {erreur && <ErrorState message={erreur.slice(0, 200)} />}
+      <p className="text-sm text-navy/75">Les heures sont affichées à l&apos;heure de Dakar (GMT).</p>
+      <Flash ok={ok} erreur={erreur} />
       {error && <ErrorState message="Impossible de charger vos rendez-vous." />}
       {!error && data?.length === 0 && <EmptyState title="Aucun rendez-vous" text="Votre conseiller planifiera vos rendez-vous ici. Vous pouvez aussi lui écrire dans Messages." />}
       {data?.map((a) => (

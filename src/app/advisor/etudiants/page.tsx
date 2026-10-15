@@ -37,7 +37,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
         return (
           <Card key={s.id}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div><p className="font-semibold">{s.profiles?.full_name ?? "Sans nom"}</p><p className="text-xs text-navy/60">{o ? `Pack ${o.service_packs?.name}` : "Aucun pack"}</p></div>
+              <div><p className="font-semibold">{s.profiles?.full_name ?? "Sans nom"}</p><p className="text-xs text-navy/75">{o ? `Pack ${o.service_packs?.name}` : "Aucun pack"}</p></div>
               <div className="flex items-center gap-3">{o && <Badge tone="blue">{ORDER_LABELS[o.status].label}</Badge>}<Link href={`/advisor/etudiants/${s.id}`} className="text-sm font-semibold text-brand">Ouvrir le dossier<span className="sr-only"> de {s.profiles?.full_name ?? "l'étudiant"}</span></Link></div>
             </div>
           </Card>

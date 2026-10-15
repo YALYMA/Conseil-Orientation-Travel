@@ -4,8 +4,8 @@ import { getPublicSettings } from "@/lib/data/student";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Textarea } from "@/components/ui/Field";
-import { ErrorState } from "@/components/ui/EmptyState";
 import { saveSettings } from "@/app/admin/actions";
+import { Flash } from "@/components/staff/Flash";
 
 export const metadata: Metadata = { title: "Réglages", robots: { index: false } };
 
@@ -16,8 +16,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="font-display text-2xl font-extrabold">Réglages de paiement et de contact</h1>
-      {ok && <p role="status" className="rounded-lg bg-[#dff5ea] p-3 text-sm font-medium text-[#0d7a50]">{ok.slice(0, 120)}</p>}
-      {erreur && <ErrorState message={erreur.slice(0, 200)} />}
+      <Flash ok={ok} erreur={erreur} />
       <form action={saveSettings} className="space-y-6">
         <Card className="space-y-4">
           <h2 className="font-display text-lg font-bold">Wave</h2>

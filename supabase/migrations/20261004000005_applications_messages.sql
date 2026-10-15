@@ -31,7 +31,7 @@ insert into application_transitions values
 
 create or replace function staff_create_application(p_student uuid, p_institution_name text, p_program_name text, p_country uuid,
   p_year text, p_procedure text default null, p_program uuid default null) returns uuid
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare aid uuid;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -46,7 +46,7 @@ begin
 end $$;
 
 create or replace function staff_move_application(p_app uuid, p_to text, p_note text default null) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare a applications;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -66,7 +66,7 @@ begin
 end $$;
 
 create or replace function staff_create_appointment(p_student uuid, p_starts_at timestamptz, p_duration int, p_kind text, p_url text default null, p_notes text default null)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare aid uuid; adv uuid;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -84,7 +84,7 @@ begin
 end $$;
 
 create or replace function student_respond_appointment(p_id uuid, p_status text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare ap appointments;
 begin
   if p_status not in ('confirmed','cancelled') then raise exception 'Statut invalide'; end if;
@@ -96,7 +96,7 @@ begin
 end $$;
 
 create or replace function staff_set_appointment_status(p_id uuid, p_status text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare ap appointments;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
@@ -109,7 +109,7 @@ begin
 end $$;
 
 create or replace function send_message(p_conversation uuid, p_body text) returns uuid
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare c conversations; mid uuid; body text := trim(coalesce(p_body, ''));
 begin
   select * into c from conversations where id = p_conversation;
@@ -125,7 +125,7 @@ begin
 end $$;
 
 create or replace function mark_conversation_read(p_conversation uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare c conversations;
 begin
   select * into c from conversations where id = p_conversation;

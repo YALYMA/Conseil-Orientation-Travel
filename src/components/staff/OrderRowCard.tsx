@@ -16,11 +16,11 @@ export function OrderRowCard({ order, role }: { order: StaffOrder; role: "adviso
   return (
     <Card>
       <div className="flex flex-wrap items-start justify-between gap-2">
-        <div><h2 className="font-semibold">{name}</h2><p className="text-xs text-navy/60">{order.reference} · Pack {order.service_packs?.name}</p></div>
+        <div><h2 className="font-semibold">{name}</h2><p className="text-xs text-navy/75">{order.reference} · Pack {order.service_packs?.name}</p></div>
         <Badge tone={order.status === "REJECTED" ? "red" : "blue"}>{ORDER_LABELS[order.status].label}</Badge>
       </div>
       <p className="mt-2 text-sm">Montant attendu à cette étape : <strong>{formatFcfa(awaitingAmount)}</strong> (total {formatFcfa(order.price_total)})</p>
-      {proofs[0] && <p className="mt-1 text-xs text-navy/65">Dernière preuve déclarée le {new Date(proofs[0].created_at).toLocaleDateString("fr-FR")}{proofs[0].wave_reference ? ` · réf. ${proofs[0].wave_reference}` : ""}. Vérifiez la capture reçue sur WhatsApp avant de valider.</p>}
+      {proofs[0] && <p className="mt-1 text-xs text-navy/75">Dernière preuve déclarée le {new Date(proofs[0].created_at).toLocaleDateString("fr-FR")}{proofs[0].wave_reference ? ` · réf. ${proofs[0].wave_reference}` : ""}. Vérifiez la capture reçue sur WhatsApp avant de valider.</p>}
       {actions.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {actions.map((a) => (

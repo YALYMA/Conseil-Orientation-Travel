@@ -17,6 +17,7 @@ import { APPLICATION_LABELS, APPLICATION_TRANSITIONS, type ApplicationStatus } f
 import { ORDER_LABELS } from "@/lib/payments/labels";
 import type { OrderStatus } from "@/lib/payments/workflow";
 import { createApplication, moveApplication, createAppointment, setAppointmentStatus, setStep } from "@/app/advisor/dossier-actions";
+import { Flash } from "@/components/staff/Flash";
 
 export const metadata: Metadata = { title: "Dossier étudiant", robots: { index: false } };
 const STEP_LABELS: Record<string, string> = { todo: "À faire", in_progress: "En cours", done: "Terminé" };
@@ -46,14 +47,13 @@ export default async function StudentFile({ params, searchParams }: { params: Pr
     <div className="mx-auto max-w-4xl space-y-6">
       <div><Link href="/advisor/etudiants" className="text-sm font-semibold text-brand">← Étudiants</Link>
         <h1 className="font-display mt-1 text-2xl font-extrabold">{profile?.full_name ?? "Étudiant"}</h1>
-        {profile?.phone && <p className="text-sm text-navy/70">{profile.phone}</p>}</div>
-      {ok && <p role="status" className="rounded-lg bg-[#dff5ea] p-3 text-sm font-medium text-[#0d7a50]">{ok.slice(0, 100)}</p>}
-      {erreur && <ErrorState message={erreur.slice(0, 200)} />}
+        {profile?.phone && <p className="text-sm text-navy/75">{profile.phone}</p>}</div>
+      <Flash ok={ok} erreur={erreur} />
       {!overview && <ErrorState message="Impossible de charger le dossier." />}
 
       <Card>
         <h2 className="font-display text-lg font-bold">Commandes</h2>
-        {(orders.data ?? []).length === 0 ? <p className="mt-2 text-sm text-navy/70">Aucune commande.</p> : (
+        {(orders.data ?? []).length === 0 ? <p className="mt-2 text-sm text-navy/75">Aucune commande.</p> : (
           <ul className="mt-2 divide-y divide-navy/10 text-sm">{(orders.data as unknown as { id: string; reference: string; status: OrderStatus; service_packs: { name: string } | null }[]).map((o) => (
             <li key={o.id} className="flex flex-wrap justify-between gap-2 py-2"><span>{o.reference} · Pack {o.service_packs?.name}</span><Badge tone="blue">{ORDER_LABELS[o.status].label}</Badge></li>
           ))}</ul>
@@ -79,15 +79,15 @@ export default async function StudentFile({ params, searchParams }: { params: Pr
 
           <Card>
             <h2 className="font-display text-lg font-bold">Candidatures</h2>
-            {overview.applications.length === 0 && <p className="mt-2 text-sm text-navy/70">Aucune candidature.</p>}
+            {overview.applications.length === 0 && <p className="mt-2 text-sm text-navy/75">Aucune candidature.</p>}
             <div className="mt-3 space-y-4">
               {overview.applications.map((a) => {
                 const next = APPLICATION_TRANSITIONS[a.status as ApplicationStatus] ?? [];
                 return (
                   <div key={a.id} className="rounded-lg border border-navy/10 p-3">
-                    <div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-semibold">{a.program_name}</p><p className="text-xs text-navy/60">{a.institution_name}{a.academic_year ? ` · ${a.academic_year}` : ""}</p></div>
+                    <div className="flex flex-wrap items-start justify-between gap-2"><div><p className="font-semibold">{a.program_name}</p><p className="text-xs text-navy/75">{a.institution_name}{a.academic_year ? ` · ${a.academic_year}` : ""}</p></div>
                       <Badge tone="blue">{APPLICATION_LABELS[a.status as ApplicationStatus] ?? a.status}</Badge></div>
-                    {a.application_events.length > 0 && <ul className="mt-2 space-y-0.5 text-xs text-navy/65">{[...a.application_events].sort((x, y) => y.created_at.localeCompare(x.created_at)).slice(0, 4).map((e) => <li key={e.id}>{new Date(e.created_at).toLocaleDateString("fr-FR")} — {e.label}</li>)}</ul>}
+                    {a.application_events.length > 0 && <ul className="mt-2 space-y-0.5 text-xs text-navy/75">{[...a.application_events].sort((x, y) => y.created_at.localeCompare(x.created_at)).slice(0, 4).map((e) => <li key={e.id}>{new Date(e.created_at).toLocaleDateString("fr-FR")} — {e.label}</li>)}</ul>}
                     {next.length > 0 && (
                       <form action={moveApplication} className="mt-3 flex flex-wrap items-center gap-2"><input type="hidden" name="studentId" value={id} /><input type="hidden" name="id" value={a.id} />
                         <Select name="to" aria-label="Nouveau statut" className="w-56">{next.map((n) => <option key={n} value={n}>{APPLICATION_LABELS[n]}</option>)}</Select>
@@ -108,7 +108,7 @@ export default async function StudentFile({ params, searchParams }: { params: Pr
 
           <Card>
             <h2 className="font-display text-lg font-bold">Rendez-vous</h2>
-            {overview.appointments.length === 0 && <p className="mt-2 text-sm text-navy/70">Aucun rendez-vous.</p>}
+            {overview.appointments.length === 0 && <p className="mt-2 text-sm text-navy/75">Aucun rendez-vous.</p>}
             <ul className="mt-3 space-y-3">{overview.appointments.map((ap) => (
               <li key={ap.id} className="flex flex-wrap items-center justify-between gap-2 text-sm"><span>{fmt(ap.starts_at)} (UTC) · {ap.kind} · {ap.duration_minutes} min</span>
                 <span className="flex items-center gap-2"><Badge tone="gray">{ap.status}</Badge>
@@ -127,8 +127,8 @@ export default async function StudentFile({ params, searchParams }: { params: Pr
 
           <Card>
             <h2 className="font-display text-lg font-bold">Documents</h2>
-            {overview.documents.length === 0 ? <p className="mt-2 text-sm text-navy/70">Aucun document déposé.</p> : (
-              <ul className="mt-2 divide-y divide-navy/10 text-sm">{overview.documents.map((d) => <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{d.name} <span className="text-navy/55">· {d.category}</span></span><span className="flex items-center gap-3"><StatusBadge status={d.status} /><a href={`/api/documents/${d.id}/download`} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand">Ouvrir</a></span></li>)}</ul>
+            {overview.documents.length === 0 ? <p className="mt-2 text-sm text-navy/75">Aucun document déposé.</p> : (
+              <ul className="mt-2 divide-y divide-navy/10 text-sm">{overview.documents.map((d) => <li key={d.id} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{d.name} <span className="text-navy/75">· {d.category}</span></span><span className="flex items-center gap-3"><StatusBadge status={d.status} /><a href={`/api/documents/${d.id}/download`} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand">Ouvrir</a></span></li>)}</ul>
             )}
             <Link href="/advisor/documents" className="mt-2 inline-block text-sm font-semibold text-brand">Vérifier les documents</Link>
           </Card>
@@ -136,7 +136,7 @@ export default async function StudentFile({ params, searchParams }: { params: Pr
       )}
 
       <Card><h2 className="font-display text-lg font-bold">Messages</h2>
-        <div className="mt-3">{conv.data ? <MessageThread messages={messages} meId={me.id} conversationId={conv.data.id} back={`/advisor/etudiants/${id}`} /> : <p className="text-sm text-navy/70">Aucune conversation.</p>}</div></Card>
+        <div className="mt-3">{conv.data ? <MessageThread messages={messages} meId={me.id} conversationId={conv.data.id} back={`/advisor/etudiants/${id}`} /> : <p className="text-sm text-navy/75">Aucune conversation.</p>}</div></Card>
     </div>
   );
 }

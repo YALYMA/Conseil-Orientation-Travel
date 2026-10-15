@@ -5,10 +5,11 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { APPLICATION_STATUSES } from "@/lib/applications/transitions";
+import { flashRedirect } from "@/lib/flash";
 
 const SAFE = ["Accès refusé", "Établissement et formation obligatoires", "Transition interdite", "La date doit être dans le futur", "Durée invalide", "Le lien doit commencer par https://", "pas encore eu lieu", "Statut invalide"];
 const uuid = z.string().uuid();
-const back = (sid: string, k: "ok" | "erreur", t: string): never => redirect(`/advisor/etudiants/${sid}?${k}=${encodeURIComponent(t)}`);
+const back = (sid: string, k: "ok" | "erreur", t: string): never => flashRedirect(`/advisor/etudiants/${sid}`, k, t);
 const msg = (m: string) => SAFE.find((s) => m.includes(s)) ?? "Une erreur est survenue.";
 
 export async function createApplication(form: FormData) {

@@ -1,0 +1,7 @@
+{
+  "name": "cot-qa",
+  "private": true,
+  "type": "module",
+  "description": "Contrôles navigateur (captures, débordements, CSP, interactions). Séparé du site pour ne pas alourdir son installation.",
+  "dependencies": { "@sparticuz/chromium": "^153.0.0", "puppeteer-core": "^25.13.0" }
+}

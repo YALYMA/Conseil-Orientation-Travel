@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth/session";
 import { getStaffOrders } from "@/lib/data/staff";
 import { OrderRowCard } from "@/components/staff/OrderRowCard";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
+import { Flash } from "@/components/staff/Flash";
 
 export const metadata: Metadata = { title: "Paiements et dossiers", robots: { index: false } };
 const PAGE_SIZE = 20;
@@ -18,8 +19,8 @@ export default async function StaffPayments({ searchParams }: { searchParams: Pr
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <h1 className="font-display text-2xl font-extrabold">Paiements et dossiers</h1>
-      <p className="text-sm text-navy/70">Un paiement n&apos;est validé qu&apos;après vérification de la preuve reçue sur WhatsApp. Chaque action est journalisée.</p>
-      {erreur && <ErrorState message={erreur.slice(0, 200)} />}
+      <p className="text-sm text-navy/75">Un paiement n&apos;est validé qu&apos;après vérification de la preuve reçue sur WhatsApp. Chaque action est journalisée.</p>
+      <Flash erreur={erreur} />
       {!data && <ErrorState message="Impossible de charger les commandes." />}
       {data && data.rows.length === 0 && <EmptyState title="Aucune commande en cours" text="Les nouvelles commandes de vos étudiants apparaîtront ici." />}
       {data?.rows.map((o) => <OrderRowCard key={o.id} order={o} role={me.role as "advisor" | "admin"} />)}

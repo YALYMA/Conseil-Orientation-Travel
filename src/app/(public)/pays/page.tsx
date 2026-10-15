@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Card } from "@/components/ui/Card";
+import { DestinationCard } from "@/components/public/DestinationCard";
+import { PageHero } from "@/components/public/PageHero";
+import { CtaBand } from "@/components/public/CtaBand";
 import { getCountries } from "@/lib/content/public";
 
 export const metadata: Metadata = {
@@ -14,18 +15,12 @@ export const revalidate = 60;
 export default async function CountriesPage() {
   const COUNTRIES = await getCountries();
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="font-display text-3xl font-extrabold">Nos destinations</h1>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {COUNTRIES.map((c) => (
-          <Card key={c.slug}>
-            <p className="text-4xl" aria-hidden>{c.flag}</p>
-            <h2 className="mt-2 font-display text-lg font-bold">{c.name}</h2>
-            <p className="mt-1 text-sm text-navy/70">{c.summary}</p>
-            <Link href={`/pays/${c.slug}`} className="mt-3 inline-block text-sm font-semibold text-brand">En savoir plus<span className="sr-only"> sur {c.name}</span></Link>
-          </Card>
-        ))}
+    <>
+      <PageHero eyebrow="Destinations" title="Nos destinations" text="Choisissez le pays où vous souhaitez poursuivre vos études et découvrez les informations officielles à connaître." />
+      <div className="mx-auto max-w-6xl px-4 pb-16">
+        <div className="relative z-10 -mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">{COUNTRIES.map((c, i) => <DestinationCard key={c.slug} c={c} priority={i < 3} className="aspect-[4/5] sm:aspect-[5/4]" />)}</div>
+        <div className="mt-14"><CtaBand title="Quelle destination vous correspond ?" text="Le test d'orientation compare votre profil, votre budget et vos langues pour proposer des pistes." /></div>
       </div>
-    </div>
+    </>
   );
 }

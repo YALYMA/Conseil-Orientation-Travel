@@ -17,3 +17,9 @@ export const signUpSchema = z.object({
 export function safeNext(next: unknown): string | null {
   return typeof next === "string" && /^\/(?!\/)[\w\-/?=&.]*$/.test(next) ? next : null;
 }
+
+export const resetRequestSchema = z.object({ email: z.string().trim().toLowerCase().email("Adresse e-mail invalide.") });
+
+export const newPasswordSchema = z
+  .object({ password: z.string().min(10, "10 caractères minimum.").max(128, "128 caractères maximum."), confirm: z.string() })
+  .refine((v) => v.password === v.confirm, { path: ["confirm"], message: "Les deux mots de passe ne correspondent pas." });

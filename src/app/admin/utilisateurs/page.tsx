@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Field";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { setRole, assignAdvisor } from "@/app/admin/actions";
+import { Flash } from "@/components/staff/Flash";
 
 export const metadata: Metadata = { title: "Utilisateurs", robots: { index: false } };
 const PAGE = 20;
@@ -25,13 +26,12 @@ export default async function UsersPage({ searchParams }: { searchParams: Promis
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <h1 className="font-display text-2xl font-extrabold">Utilisateurs</h1>
-      {ok && <p role="status" className="rounded-lg bg-[#dff5ea] p-3 text-sm font-medium text-[#0d7a50]">{ok.slice(0, 120)}</p>}
-      {erreur && <ErrorState message={erreur.slice(0, 200)} />}
+      <Flash ok={ok} erreur={erreur} />
       {users.error && <ErrorState message="Impossible de charger les utilisateurs." />}
       {!users.error && rows.length === 0 && <EmptyState title="Aucun utilisateur" text="Les comptes créés apparaîtront ici." />}
       {rows.map((u) => (
         <Card key={u.id}>
-          <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold">{u.full_name ?? "Sans nom"}{u.id === me.id && " (vous)"}</p><span className="text-xs text-navy/60">{u.role}</span></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><p className="font-semibold">{u.full_name ?? "Sans nom"}{u.id === me.id && " (vous)"}</p><span className="text-xs text-navy/75">{u.role}</span></div>
           <div className="mt-3 flex flex-wrap gap-4">
             {u.id !== me.id && (
               <form action={setRole} className="flex items-center gap-2"><input type="hidden" name="user" value={u.id} />

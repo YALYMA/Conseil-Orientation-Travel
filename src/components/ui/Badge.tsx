@@ -5,7 +5,7 @@ const tones: Record<Tone, string> = {
   gold: "bg-[#fff4d6] text-[#8a6100]",
   green: "bg-[#dff5ea] text-[#0d7a50]",
   red: "bg-[#fde8e8] text-[#a82b2b]",
-  gray: "bg-navy/5 text-navy/70",
+  gray: "bg-navy/5 text-navy/75",
 };
 export function Badge({ tone = "blue", className, ...p }: { tone?: Tone } & React.HTMLAttributes<HTMLSpanElement>) {
   return <span className={cn("inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold", tones[tone], className)} {...p} />;

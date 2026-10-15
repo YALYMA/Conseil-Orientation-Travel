@@ -43,3 +43,7 @@ next-env.d.ts
 # secrets
 .env
 .env.local
+
+# outils de contrôle navigateur (dossier qa/)
+qa/node_modules
+qa/qa-out

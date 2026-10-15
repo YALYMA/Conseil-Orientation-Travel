@@ -3,7 +3,7 @@
 -- Réservée au rôle service (appelée uniquement depuis le serveur Next.js) : un client ne peut pas
 -- l'appeler pour remplir la table ou épuiser le quota d'un tiers.
 create or replace function rate_limit_hit(p_bucket text, p_limit int, p_window_seconds int)
-returns boolean language plpgsql security definer set search_path = public as $$
+returns boolean language plpgsql security definer set search_path = public, pg_temp as $$
 declare w timestamptz; n int;
 begin
   if p_bucket is null or length(p_bucket) > 200 or p_limit < 1 or p_window_seconds < 1 or p_window_seconds > 86400 then
@@ -21,7 +21,7 @@ grant execute on function rate_limit_hit(text, int, int) to service_role;
 
 -- Consultation d'un document par le personnel : tracée (la consultation par le propriétaire ne l'est pas).
 create or replace function log_document_access(p_document uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare d documents;
 begin
   select * into d from documents where id = p_document;

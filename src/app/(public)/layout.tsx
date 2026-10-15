@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/public/SiteHeader";
 import { SiteFooter } from "@/components/public/SiteFooter";
+import { PublicBottomNav } from "@/components/public/PublicBottomNav";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <SiteHeader />
       <main id="contenu" className="flex-1">{children}</main>
       <SiteFooter />
+      <PublicBottomNav />
     </>
   );
 }

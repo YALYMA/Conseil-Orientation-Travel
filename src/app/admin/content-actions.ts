@@ -1,14 +1,14 @@
 "use server";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { parseFeatures, parseLines, parseLinks } from "@/lib/admin/parse";
+import { flashRedirect } from "@/lib/flash";
 
 const SAFE = ["Identifiant (slug) invalide", "Nom obligatoire", "Prix invalide", "Pack introuvable", "Nombre de candidatures invalide", "Lien officiel invalide", "Pays introuvable", "Procédure introuvable", "Titre obligatoire", "Question et réponse obligatoires", "Question introuvable", "Fonctionnalités invalides"];
 const explain = (e: { message: string; code?: string }) => (e.code === "23505" ? "Cet identifiant existe déjà." : SAFE.find((s) => e.message.includes(s)) ?? "Une erreur est survenue.");
-const go = (path: string, k: "ok" | "erreur", t: string): never => redirect(`${path}?${k}=${encodeURIComponent(t)}`);
+const go = (path: string, k: "ok" | "erreur", t: string): never => flashRedirect(path, k, t);
 const refresh = () => revalidatePath("/", "layout"); // pages publiques mises en cache : on les régénère
 
 const slug = z.string().trim().regex(/^[a-z0-9-]{2,60}$/, "Identifiant invalide : minuscules, chiffres et tirets (2 à 60).");

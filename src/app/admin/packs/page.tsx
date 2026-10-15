@@ -47,7 +47,7 @@ export default async function AdminPacks({ searchParams }: { searchParams: Promi
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <h1 className="font-display text-2xl font-extrabold">Packs</h1>
-      <p className="text-sm text-navy/70">Modifier un prix ne change jamais les commandes déjà passées : leurs montants sont figés. Chaque changement de prix est journalisé.</p>
+      <p className="text-sm text-navy/75">Modifier un prix ne change jamais les commandes déjà passées : leurs montants sont figés. Chaque changement de prix est journalisé.</p>
       <Flash ok={ok} erreur={erreur} />
       {error && <ErrorState message="Impossible de charger les packs." />}
       {packs.map((p) => {
@@ -56,8 +56,8 @@ export default async function AdminPacks({ searchParams }: { searchParams: Promi
           <Card key={p.id}>
             <details>
               <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2 font-semibold">
-                <span>{p.name}{!p.is_active && <span className="ml-2 text-xs font-normal text-navy/60">(inactif)</span>}</span>
-                <span className="text-sm font-normal text-navy/70">{formatFcfa(p.price_total)} = {formatFcfa(s.first)} + {formatFcfa(s.balance)}</span>
+                <span>{p.name}{!p.is_active && <span className="ml-2 text-xs font-normal text-navy/75">(inactif)</span>}</span>
+                <span className="text-sm font-normal text-navy/75">{formatFcfa(p.price_total)} = {formatFcfa(s.first)} + {formatFcfa(s.balance)}</span>
               </summary>
               <div className="mt-4"><PackForm p={p} /></div>
             </details>

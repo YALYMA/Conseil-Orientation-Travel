@@ -37,7 +37,7 @@ export default async function AdminFaq({ searchParams }: { searchParams: Promise
       <h1 className="font-display text-2xl font-extrabold">FAQ</h1>
       <Flash ok={ok} erreur={erreur} />
       {error && <ErrorState message="Impossible de charger la FAQ." />}
-      {((data ?? []) as Faq[]).map((f) => <Card key={f.id}><details><summary className="cursor-pointer font-semibold">{f.question}{!f.is_published && <span className="ml-2 text-xs font-normal text-navy/60">(masquée)</span>}</summary><div className="mt-4"><FaqForm f={f} /></div></details></Card>)}
+      {((data ?? []) as Faq[]).map((f) => <Card key={f.id}><details><summary className="cursor-pointer font-semibold">{f.question}{!f.is_published && <span className="ml-2 text-xs font-normal text-navy/75">(masquée)</span>}</summary><div className="mt-4"><FaqForm f={f} /></div></details></Card>)}
       <Card><h2 className="font-display text-lg font-bold">Nouvelle question</h2><div className="mt-3"><FaqForm /></div></Card>
     </div>
   );

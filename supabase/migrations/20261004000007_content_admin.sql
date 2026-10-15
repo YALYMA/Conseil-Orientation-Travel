@@ -4,7 +4,7 @@
 create or replace function admin_save_pack(
   p_id uuid, p_slug text, p_name text, p_tagline text, p_description text, p_price int, p_badge text, p_duration text,
   p_apps int, p_deliverables text[], p_excluded text[], p_features jsonb, p_active boolean, p_sort int)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare pid uuid; old_price int; meta jsonb := '{}';
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -42,7 +42,7 @@ end $$;
 create or replace function admin_save_country(
   p_id uuid, p_slug text, p_name text, p_flag text, p_summary text, p_description text, p_types text[],
   p_budget text, p_visa text, p_housing text, p_links jsonb, p_published boolean, p_sort int)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare cid uuid; l jsonb;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -69,7 +69,7 @@ begin
 end $$;
 
 create or replace function admin_save_procedure(p_id uuid, p_country uuid, p_title text, p_body text, p_docs text[], p_url text, p_verified date, p_sort int)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare rid uuid;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -89,7 +89,7 @@ begin
 end $$;
 
 create or replace function admin_delete_procedure(p_id uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
   delete from country_procedures where id = p_id;
@@ -98,7 +98,7 @@ begin
 end $$;
 
 create or replace function admin_save_faq(p_id uuid, p_question text, p_answer text, p_sort int, p_published boolean) returns uuid
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare fid uuid;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -114,7 +114,7 @@ begin
 end $$;
 
 create or replace function admin_delete_faq(p_id uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
   delete from faqs where id = p_id;

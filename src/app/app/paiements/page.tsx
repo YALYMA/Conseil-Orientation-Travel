@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PaymentCard } from "@/components/student/PaymentCard";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { ButtonLink } from "@/components/ui/Button";
+import { Flash } from "@/components/staff/Flash";
 
 export const metadata: Metadata = { title: "Mes paiements", robots: { index: false } };
 
@@ -20,7 +21,7 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <h1 className="font-display text-2xl font-extrabold">Mes paiements</h1>
-      {erreur && <ErrorState message={erreur.slice(0, 200)} />}
+      <Flash erreur={erreur} />
       {failed && <ErrorState message="Impossible de charger vos paiements. Réessayez dans un instant." />}
       {!failed && orders.length === 0 && <EmptyState title="Aucune commande" text="Choisissez un pack pour démarrer." action={<ButtonLink href="/app/commande" variant="cta">Choisir un pack</ButtonLink>} />}
       {orders.map((o) => <PaymentCard key={o.id} order={o} settings={settings} student={{ fullName: me.fullName ?? "", phone: profile?.phone ?? "" }} />)}

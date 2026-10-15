@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
 import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
 import { reviewDocument } from "@/app/advisor/doc-actions";
+import { Flash } from "@/components/staff/Flash";
 
 export const metadata: Metadata = { title: "Documents à vérifier", robots: { index: false } };
 
@@ -28,13 +29,13 @@ export default async function StaffDocuments({ searchParams }: { searchParams: P
   return (
     <div className="mx-auto max-w-4xl space-y-4">
       <h1 className="font-display text-2xl font-extrabold">Documents à vérifier</h1>
-      {erreur && <ErrorState message={erreur.slice(0, 200)} />}
+      <Flash erreur={erreur} />
       {docs === null && <ErrorState message="Impossible de charger les documents." />}
       {docs?.length === 0 && <EmptyState title="Rien à vérifier" text="Les documents déposés par vos étudiants apparaîtront ici." />}
       {docs?.map((d) => (
         <Card key={d.id}>
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <div><h2 className="font-semibold">{d.name}</h2><p className="text-xs text-navy/60">{d.students?.profiles?.full_name ?? "Étudiant"} · {d.category}</p></div>
+            <div><h2 className="font-semibold">{d.name}</h2><p className="text-xs text-navy/75">{d.students?.profiles?.full_name ?? "Étudiant"} · {d.category}</p></div>
             <StatusBadge status={d.status} />
           </div>
           <a href={`/api/documents/${d.id}/download`} target="_blank" rel="noopener noreferrer" className="mt-2 inline-block text-sm font-semibold text-brand">Ouvrir le fichier (lien temporaire)</a>

@@ -4,11 +4,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { flashRedirect } from "@/lib/flash";
 
 // Seuls ces messages (écrits par nous, en base) sont montrés tels quels ; le reste devient un message générique.
-const SAFE = ["Une commande est déjà en cours pour ce pack", "Aucun paiement attendu pour le moment", "Pack introuvable", "Commande introuvable", "Une raison est obligatoire", "Transition interdite"];
+const SAFE = ["Une commande est déjà en cours pour ce pack", "Aucun paiement attendu pour le moment", "Pack introuvable", "Commande introuvable", "Une raison est obligatoire", "Transition interdite", "Document introuvable", "Un document validé ne peut pas être supprimé"];
 const toMessage = (m: string) => SAFE.find((s) => m.includes(s)) ?? "Une erreur est survenue. Réessayez ou contactez-nous.";
-const back = (path: string, e: string) => redirect(`${path}?erreur=${encodeURIComponent(e)}`);
+const back = (path: string, e: string): never => flashRedirect(path, "erreur", e);
 
 export async function placeOrder(form: FormData) {
   await requireRole(["student"]);
@@ -66,14 +68,50 @@ export async function saveProject(form: FormData) {
   const base = isStudent ? "/app/projet" : `/advisor/etudiants/${target}`;
   if (!z.string().uuid().safeParse(target).success) redirect(isStudent ? "/app/projet" : "/advisor/etudiants");
   const p = projectSchema.safeParse(Object.fromEntries(form));
-  if (!p.success) redirect(`${base}?erreur=${encodeURIComponent("Vérifiez les champs du projet (niveau, domaine, année 2026-2035).")}`);
+  if (!p.success) flashRedirect(base, "erreur", "Vérifiez les champs du projet (niveau, domaine, année 2026-2035).");
   const supabase = await createClient();
   const { error } = await supabase.rpc("save_project", {
     p_student: target, p_country: p.data.country || null, p_level: p.data.level, p_domain: p.data.domain,
     p_year: p.data.year, p_goal: p.data.goal, p_budget: p.data.budget,
   });
-  if (error) redirect(`${base}?erreur=${encodeURIComponent(error.message.includes("Accès refusé") ? "Accès refusé" : "Impossible d'enregistrer le projet.")}`);
+  if (error) flashRedirect(base, "erreur", error.message.includes("Accès refusé") ? "Accès refusé" : "Impossible d'enregistrer le projet.");
   revalidatePath("/app", "layout");
   revalidatePath(base);
-  redirect(`${base}?ok=${encodeURIComponent("Projet enregistré.")}`);
+  flashRedirect(base, "ok", "Projet enregistré.");
+}
+
+// ───────── Documents : suppression (étudiant, documents non validés) ─────────
+export async function deleteDocument(form: FormData) {
+  await requireRole(["student"]);
+  const id = z.string().uuid().safeParse(form.get("id"));
+  if (!id.success) return back("/app/documents", "Document introuvable");
+  // La base contrôle propriétaire + statut, journalise, supprime les lignes et renvoie les chemins à effacer.
+  const { data: paths, error } = await (await createClient()).rpc("delete_document", { p_document: id.data });
+  if (error) return back("/app/documents", toMessage(error.message));
+  // Nettoyage du fichier (clé de service). Un échec laisse un fichier orphelin : journalisé, sans bloquer l'étudiant.
+  try {
+    const list = Array.isArray(paths) ? (paths as string[]) : [];
+    if (list.length) {
+      const { error: rmError } = await createAdminClient().storage.from("documents").remove(list);
+      if (rmError) console.error("[documents] fichiers non supprimés du stockage :", list.length, rmError.message);
+    }
+  } catch (e) { console.error("[documents] nettoyage du stockage impossible :", e instanceof Error ? e.message : e); }
+  revalidatePath("/app/documents");
+  return flashRedirect("/app/documents", "ok", "Document supprimé.");
+}
+
+// ───────── Profil (nom et téléphone, via la fonction SQL validée update_my_profile) ─────────
+const profileSchema = z.object({
+  name: z.string().trim().min(2, "Indiquez votre nom complet.").max(120),
+  phone: z.string().trim().regex(/^\+?[0-9 ]{8,18}$/, "Numéro de téléphone invalide (8 à 18 chiffres, « + » possible)."),
+});
+
+export async function updateProfile(form: FormData) {
+  await requireRole(["student"]);
+  const p = profileSchema.safeParse(Object.fromEntries(form));
+  if (!p.success) return flashRedirect("/app/profil", "erreur", p.error.issues[0].message);
+  const { error } = await (await createClient()).rpc("update_my_profile", { p_name: p.data.name, p_phone: p.data.phone });
+  if (error) return flashRedirect("/app/profil", "erreur", "Impossible d'enregistrer votre profil.");
+  revalidatePath("/app", "layout");
+  return flashRedirect("/app/profil", "ok", "Profil mis à jour.");
 }

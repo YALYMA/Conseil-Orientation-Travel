@@ -18,18 +18,18 @@ export default async function ApplicationsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <h1 className="font-display text-2xl font-extrabold">Mes candidatures</h1>
-      <p className="text-sm text-navy/70">La décision finale appartient aux établissements et aux autorités compétentes.</p>
+      <p className="text-sm text-navy/75">La décision finale appartient aux établissements et aux autorités compétentes.</p>
       {error && <ErrorState message="Impossible de charger vos candidatures." />}
       {!error && apps.length === 0 && <EmptyState title="Aucune candidature pour le moment" text="Votre conseiller ajoutera ici les formations retenues, puis vous pourrez suivre chaque étape." />}
       {apps.map((a) => (
         <Card key={a.id}>
           <div className="flex flex-wrap items-start justify-between gap-2">
-            <div><h2 className="font-semibold">{a.program_name}</h2><p className="text-sm text-navy/70">{a.institution_name}{a.countries ? ` · ${a.countries.name}` : ""}{a.academic_year ? ` · ${a.academic_year}` : ""}</p></div>
+            <div><h2 className="font-semibold">{a.program_name}</h2><p className="text-sm text-navy/75">{a.institution_name}{a.countries ? ` · ${a.countries.name}` : ""}{a.academic_year ? ` · ${a.academic_year}` : ""}</p></div>
             <Badge tone={tone(a.status)}>{APPLICATION_LABELS[a.status]}</Badge>
           </div>
           <ol className="mt-3 space-y-1 border-l-2 border-brand-soft pl-3 text-sm">
             {[...a.application_events].sort((x, y) => y.created_at.localeCompare(x.created_at)).map((e) => (
-              <li key={e.id}><span className="text-navy/55">{new Date(e.created_at).toLocaleDateString("fr-FR", { timeZone: "UTC" })}</span> · {APPLICATION_LABELS[e.label as ApplicationStatus] ?? e.label}</li>
+              <li key={e.id}><span className="text-navy/75">{new Date(e.created_at).toLocaleDateString("fr-FR", { timeZone: "UTC" })}</span> · {APPLICATION_LABELS[e.label as ApplicationStatus] ?? e.label}</li>
             ))}
           </ol>
         </Card>

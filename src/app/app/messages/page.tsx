@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { MessageThread } from "@/components/student/MessageThread";
-import { EmptyState, ErrorState } from "@/components/ui/EmptyState";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Flash } from "@/components/staff/Flash";
 
 export const metadata: Metadata = { title: "Messages", robots: { index: false } };
 
@@ -16,7 +17,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Pro
   return (
     <div className="mx-auto max-w-2xl space-y-4">
       <h1 className="font-display text-2xl font-extrabold">Messages</h1>
-      {erreur && <ErrorState message={erreur.slice(0, 200)} />}
+      <Flash erreur={erreur} />
       {!conv ? <EmptyState title="Messagerie indisponible" text="Votre conversation n'est pas encore créée. Contactez-nous." /> : (
         <>
           {!conv.advisor_id && <p role="status" className="rounded-lg bg-[#fff4d6] p-3 text-sm">Un conseiller va vous être assigné. Vous pouvez déjà écrire : votre message sera lu par l&apos;équipe.</p>}

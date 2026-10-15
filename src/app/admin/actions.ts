@@ -1,13 +1,13 @@
 "use server";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { flashRedirect } from "@/lib/flash";
 
 const SAFE = ["Numéro de téléphone invalide", "Le lien doit commencer par https://", "propre rôle", "Conseiller invalide", "Utilisateur introuvable", "Étudiant introuvable", "Rôle invalide"];
 const msg = (m: string) => SAFE.find((s) => m.includes(s)) ?? "Une erreur est survenue.";
-const go = (path: string, key: "ok" | "erreur", text: string): never => redirect(`${path}?${key}=${encodeURIComponent(text)}`);
+const go = (path: string, key: "ok" | "erreur", text: string): never => flashRedirect(path, key, text);
 
 const phone = z.string().trim().max(18).regex(/^(\+?[0-9 ]{8,18})?$/, "Numéro de téléphone invalide");
 const url = z.string().trim().max(300).regex(/^(https:\/\/\S+)?$/, "Le lien doit commencer par https://");

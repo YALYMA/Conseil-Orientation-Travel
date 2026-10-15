@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SignUpForm } from "@/components/public/AuthForms";
-export const metadata: Metadata = { title: "Inscription", alternates: { canonical: "/inscription" } };
+export const metadata: Metadata = { title: "Inscription", robots: { index: false } };
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ pack?: string }> }) {
   const { pack } = await searchParams;

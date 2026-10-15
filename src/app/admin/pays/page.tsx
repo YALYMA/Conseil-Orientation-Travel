@@ -72,7 +72,7 @@ export default async function AdminCountries({ searchParams }: { searchParams: P
       {countries.map((c) => (
         <Card key={c.id}>
           <details>
-            <summary className="cursor-pointer font-semibold">{c.flag} {c.name}{!c.is_published && <span className="ml-2 text-xs font-normal text-navy/60">(non publié)</span>} <span className="text-sm font-normal text-navy/60">· {c.country_procedures.length} procédure(s)</span></summary>
+            <summary className="cursor-pointer font-semibold">{c.flag} {c.name}{!c.is_published && <span className="ml-2 text-xs font-normal text-navy/75">(non publié)</span>} <span className="text-sm font-normal text-navy/75">· {c.country_procedures.length} procédure(s)</span></summary>
             <div className="mt-4 space-y-6">
               <CountryForm c={c} />
               <div className="border-t border-navy/10 pt-4"><h3 className="font-display font-bold">Procédures</h3>

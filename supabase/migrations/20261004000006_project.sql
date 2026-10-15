@@ -2,7 +2,7 @@
 -- L'entretien est déduit des rendez-vous ; le reste de la progression est calculé depuis les données réelles.
 
 create or replace function save_project(p_student uuid, p_country uuid, p_level text, p_domain text, p_year int, p_goal text, p_budget text)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare cur student_projects; changed text[] := '{}'; pid uuid;
 begin
   if auth.uid() is null or not can_access_student(p_student) then raise exception 'Accès refusé'; end if;
@@ -31,7 +31,7 @@ begin
 end $$;
 
 create or replace function staff_set_step(p_student uuid, p_code text, p_status text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;
   if not can_access_student(p_student) then raise exception 'Accès refusé'; end if;

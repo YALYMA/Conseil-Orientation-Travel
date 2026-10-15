@@ -39,7 +39,7 @@ export function DocumentUploader({ documentId, maxMb = 10, defaultCategory, defa
       </div>
       <Field label={`Fichier (PDF, JPG, PNG ou DOCX, ${maxMb} Mo max)`} htmlFor={`file-${id}`}><Input id={`file-${id}`} name="file" type="file" accept=".pdf,.jpg,.jpeg,.png,.docx" required /></Field>
       {error && <p role="alert" className="text-sm font-medium text-danger">{error}</p>}
-      {ok && <p role="status" className="text-sm font-medium text-success">Document envoyé. Votre conseiller va le vérifier.</p>}
+      {ok && <p role="status" className="text-sm font-medium text-success-ink">Document envoyé. Votre conseiller va le vérifier.</p>}
       <Button type="submit" disabled={busy}>{busy ? "Envoi…" : documentId ? "Envoyer une nouvelle version" : "Ajouter le document"}</Button>
     </form>
   );

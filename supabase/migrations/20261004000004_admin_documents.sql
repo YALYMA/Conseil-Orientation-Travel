@@ -1,7 +1,7 @@
 -- Opérations d'administration et de documents : toutes journalisées, toutes contrôlées en base.
 
 create or replace function admin_set_role(p_user uuid, p_role text) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare old_role text;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -16,7 +16,7 @@ begin
 end $$;
 
 create or replace function admin_assign_advisor(p_student uuid, p_advisor uuid) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
   if p_advisor is not null and not exists (select 1 from profiles where id = p_advisor and role = 'advisor' and is_active) then
@@ -33,7 +33,7 @@ begin
 end $$;
 
 create or replace function admin_update_setting(p_key text, p_value jsonb) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare phone text; url text;
 begin
   if not is_admin() then raise exception 'Réservé aux administrateurs'; end if;
@@ -50,7 +50,7 @@ end $$;
 
 -- Dépôt d'un document (nouveau ou nouvelle version). Le fichier est déjà dans le bucket privé.
 create or replace function register_document_upload(p_category text, p_name text, p_path text, p_mime text, p_size int, p_document uuid default null)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare did uuid; ver int; st text; sid uuid;
 begin
   if auth.uid() is null or coalesce(current_role_code(), '') <> 'student' then raise exception 'Réservé aux étudiants'; end if;
@@ -76,7 +76,7 @@ begin
 end $$;
 
 create or replace function review_document(p_document uuid, p_status text, p_comment text default null) returns void
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 declare d documents;
 begin
   if current_role_code() not in ('advisor','admin') then raise exception 'Réservé au personnel'; end if;

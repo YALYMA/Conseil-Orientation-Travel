@@ -23,7 +23,7 @@ export default async function AdminHome() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <h1 className="font-display text-2xl font-extrabold">Tableau de bord administrateur</h1>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cards.map(([l, v]) => <Card key={l}><p className="text-sm text-navy/60">{l}</p><p className="text-3xl font-extrabold">{v}</p></Card>)}</div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{cards.map(([l, v]) => <Card key={l}><p className="text-sm text-navy/75">{l}</p><p className="text-3xl font-extrabold">{v}</p></Card>)}</div>
       <Card><p className="text-sm">Avant l&apos;ouverture au public, renseignez le <Link href="/admin/reglages" className="font-semibold text-brand">numéro Wave et WhatsApp</Link>.</p></Card>
     </div>
   );

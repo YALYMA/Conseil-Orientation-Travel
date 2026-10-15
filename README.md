@@ -3,6 +3,8 @@
 Plateforme d'orientation et d'accompagnement aux études à l'étranger (étudiants sénégalais → France, Belgique, Luxembourg, Italie, Maroc).
 Next.js 16 (App Router) · TypeScript · Tailwind CSS 4 · Supabase (Auth, PostgreSQL + RLS, Storage privé) · Vercel.
 
+**Nouvelle interface (v1.1.0)** : design moderne et responsive, navigation de type application (barre d'onglets mobile), illustrations originales, installable sur téléphone. Photos : `public/images/README.md`. Contrôles navigateur : `qa/README.md`.
+
 **Déployer** : suivre `DEPLOYMENT.md`, puis dérouler `RECETTE.md`. État détaillé et limites : `STATUS.md`.
 
 ## Ce que fait la plateforme
@@ -23,11 +25,11 @@ npm run dev
 | Commande | Rôle |
 |---|---|
 | `npm run check` | lint + typecheck + tests + build |
-| `npm test` | 190+ tests (logique métier, RLS, paiements, documents… sur PostgreSQL en WASM) |
-| `      ` | régénère `supabase/setup.sql` (installation en un fichier) |
+| `npm test` | 270+ tests (logique métier, RLS, paiements, documents… sur PostgreSQL en WASM) |
+| `npm run sql:bundle` | régénère `supabase/setup.sql` (installation en un fichier) |
 
 ## Base de données
 `supabase/setup.sql` (8 migrations concaténées) puis `supabase/seed.sql` (données **fictives**). Voir `DATABASE.md`.
 
 ## Documentation
-`DEPLOYMENT.md` · `RECETTE.md` · `SECURITY.md` · `DATABASE.md` · `ARCHITECTURE_PLAN.md` · `STATUS.md`
+`AUDIT.md` · `AUDIT.md` · `DEPLOYMENT.md` · `RECETTE.md` · `SECURITY.md` · `DATABASE.md` · `ARCHITECTURE_PLAN.md` · `STATUS.md`

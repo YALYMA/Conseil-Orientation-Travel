@@ -1,22 +1,22 @@
 -- Fonctions d'aide (SECURITY DEFINER pour éviter la récursion RLS)
 create or replace function current_role_code() returns text
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select role from profiles where id = auth.uid() and is_active
 $$;
 
 create or replace function is_admin() returns boolean
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select coalesce(current_role_code() = 'admin', false)
 $$;
 
 create or replace function is_staff() returns boolean
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select coalesce(current_role_code() in ('advisor','admin'), false)
 $$;
 
 -- Vrai si l'utilisateur courant est l'étudiant, son conseiller assigné, ou un admin
 create or replace function can_access_student(sid uuid) returns boolean
-language sql stable security definer set search_path = public as $$
+language sql stable security definer set search_path = public, pg_temp as $$
   select auth.uid() is not null and (
     auth.uid() = sid
     or is_admin()
@@ -26,7 +26,7 @@ $$;
 
 -- Création automatique du profil à l'inscription : TOUJOURS étudiant (le rôle ne vient jamais des métadonnées client)
 create or replace function handle_new_user() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   insert into profiles (id, role, full_name, phone)
   values (new.id, 'student', new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'phone');
@@ -38,7 +38,7 @@ create trigger on_auth_user_created after insert on auth.users for each row exec
 
 -- Empêche l'élévation de privilège : seul un admin peut changer role / is_active
 create or replace function guard_profile_update() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if (new.role is distinct from old.role or new.is_active is distinct from old.is_active)
      and not (auth.role() = 'service_role' or is_admin()) then
@@ -50,7 +50,7 @@ create trigger trg_profiles_guard before update on profiles for each row execute
 
 -- Empêche l'étudiant de se réassigner un conseiller
 create or replace function guard_student_update() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if new.advisor_id is distinct from old.advisor_id and not (auth.role() = 'service_role' or is_admin()) then
     raise exception 'Assignation réservée aux administrateurs';
@@ -61,7 +61,7 @@ create trigger trg_students_guard before update on students for each row execute
 
 -- Les montants d'une commande sont immuables côté client
 create or replace function guard_order_update() returns trigger
-language plpgsql security definer set search_path = public as $$
+language plpgsql security definer set search_path = public, pg_temp as $$
 begin
   if (new.price_total, new.first_amount, new.balance_amount, new.pack_id, new.student_id)
      is distinct from (old.price_total, old.first_amount, old.balance_amount, old.pack_id, old.student_id)

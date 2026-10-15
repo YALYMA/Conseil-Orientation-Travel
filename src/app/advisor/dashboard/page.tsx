@@ -30,7 +30,7 @@ export default async function AdvisorDashboard() {
       <h1 className="font-display text-2xl font-extrabold">Tableau de bord</h1>
       <div className="grid gap-4 sm:grid-cols-3">
         {cards.map(([label, value]) => (
-          <Card key={label}><p className="text-sm text-navy/60">{label}</p><p className="text-3xl font-extrabold">{value}</p></Card>
+          <Card key={label}><p className="text-sm text-navy/75">{label}</p><p className="text-3xl font-extrabold">{value}</p></Card>
         ))}
       </div>
       <Card>
@@ -42,7 +42,7 @@ export default async function AdvisorDashboard() {
             {todo.map((o) => (
               <li key={o.id} className="flex flex-wrap justify-between gap-2 py-2 text-sm">
                 <span>{o.students?.profiles?.full_name ?? "Étudiant"} · {o.service_packs?.name}</span>
-                <span className="text-navy/70">{ORDER_LABELS[o.status].label}</span>
+                <span className="text-navy/75">{ORDER_LABELS[o.status].label}</span>
               </li>
             ))}
           </ul>

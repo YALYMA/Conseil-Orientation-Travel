@@ -47,7 +47,7 @@ insert into order_transitions values
 
 -- Transition interne (non appelable par les clients)
 create or replace function internal_transition(p_order uuid, p_to text, p_actor text, p_reason text)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare cur text; req boolean;
 begin
   select status into cur from orders where id = p_order for update;
@@ -61,13 +61,13 @@ begin
 end $$;
 
 create or replace function notify_user(p_user uuid, p_kind text, p_title text, p_body text, p_link text)
-returns void language sql security definer set search_path = public as $$
+returns void language sql security definer set search_path = public, pg_temp as $$
   insert into notifications (user_id, kind, title, body, link) values (p_user, p_kind, p_title, p_body, p_link)
 $$;
 
 -- Étudiant : crée une commande. Le prix est lu en base, le 50/50 calculé ici.
 create or replace function create_order(p_pack_slug text, p_country_id uuid default null)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public, pg_temp as $$
 declare pack service_packs; first_amt int; oid uuid;
 begin
   if auth.uid() is null or coalesce(current_role_code(), '') <> 'student' then raise exception 'Réservé aux étudiants'; end if;
@@ -88,7 +88,7 @@ end $$;
 
 -- Étudiant : déclare une preuve (WhatsApp). Ne valide JAMAIS le paiement.
 create or replace function submit_payment_proof(p_order uuid, p_wave_ref text default null, p_note text default null)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare o orders; stg text; nxt text; pid uuid; sid uuid;
 begin
   select * into o from orders where id = p_order;
@@ -110,7 +110,7 @@ begin
 end $$;
 
 create or replace function student_cancel_order(p_order uuid, p_reason text)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare o orders;
 begin
   select * into o from orders where id = p_order;
@@ -120,7 +120,7 @@ end $$;
 
 -- Staff : fait avancer une commande (conseiller assigné ou admin). Effets de bord sur les paiements.
 create or replace function staff_transition(p_order uuid, p_to text, p_reason text default null)
-returns void language plpgsql security definer set search_path = public as $$
+returns void language plpgsql security definer set search_path = public, pg_temp as $$
 declare o orders; r text;
 begin
   r := current_role_code();

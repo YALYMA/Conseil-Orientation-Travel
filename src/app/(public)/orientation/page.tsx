@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Questionnaire } from "@/components/public/Questionnaire";
+import { PageHero } from "@/components/public/PageHero";
 
 export const metadata: Metadata = {
   title: "Test d'orientation gratuit",
@@ -9,10 +10,9 @@ export const metadata: Metadata = {
 
 export default function OrientationPage() {
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12">
-      <h1 className="font-display text-3xl font-extrabold">Évaluez votre profil gratuitement</h1>
-      <p className="mt-2 mb-8 text-navy/75">9 questions, environ 3 minutes. Vos réponses ne sont pas enregistrées tant que vous n&apos;avez pas de compte.</p>
-      <Questionnaire />
-    </div>
+    <>
+      <PageHero eyebrow="Test gratuit" title="Évaluez votre profil gratuitement" text="9 questions, environ 3 minutes. Vos réponses ne sont pas enregistrées tant que vous n'avez pas de compte." />
+      <div className="mx-auto max-w-2xl px-4 pb-16"><div className="relative z-10 -mt-8"><Questionnaire /></div></div>
+    </>
   );
 }
