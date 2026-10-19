@@ -13,6 +13,8 @@ export function splitPayment(total: number): PaymentSplit {
   return { total, first, balance: total - first };
 }
 
+/** Montant en FCFA, milliers séparés par un point : 40.000 FCFA. Source unique du format : ne pas reformater ailleurs. */
 export function formatFcfa(amount: number): string {
-  return `${new Intl.NumberFormat("fr-FR").format(amount).replace(/\u202f|\u00a0/g, " ")} FCFA`;
+  const n = String(Math.trunc(Math.abs(amount))).replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `${amount < 0 ? "-" : ""}${n} FCFA`;
 }

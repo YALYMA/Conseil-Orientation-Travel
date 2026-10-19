@@ -55,7 +55,7 @@ export function buildDiagnostic(a: Answers): Diagnostic {
   if (goal === "Master" && level === "Bac") notes.push("Un Master suppose en général un diplôme de Licence : à clarifier avec un conseiller.");
   if (dest === "Italie" && !langs.includes("Italien")) notes.push("Vérifiez la langue d'enseignement des formations visées et les exigences linguistiques.");
   if (dest === "France" && !langs.includes("Français")) notes.push("Vérifiez la langue d'enseignement des formations visées et les exigences linguistiques.");
-  if (str(a, "budget") === "Moins de 2 000 000 FCFA") notes.push("Le budget est un critère important : un conseiller vous aidera à comparer les options.");
+  if (str(a, "budget") === "Moins de 2.000.000 FCFA") notes.push("Le budget est un critère important : un conseiller vous aidera à comparer les options.");
 
   const suggestedPack = undecided || level === "Bac" ? "orientation" : "candidature";
   return { profile, recommendations, notes, suggestedPack };

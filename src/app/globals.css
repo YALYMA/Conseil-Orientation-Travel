@@ -31,6 +31,8 @@ html { scroll-behavior: smooth; }
 
 @keyframes float-y { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @keyframes fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.animate-marquee { animation: marquee 38s linear infinite; }
 .animate-float { animation: float-y 6s ease-in-out infinite; }
 .animate-float-slow { animation: float-y 8s ease-in-out -2s infinite; }
 .animate-fade-up { animation: fade-up .6s ease-out both; }

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildDiagnostic, validateAnswers } from "@/lib/orientation/diagnostic";
 import { QUESTIONS } from "@/lib/orientation/questions";
 
-const ok = { level: "Licence", domain: "Informatique", destination: "France", budget: "2 à 4 000 000 FCFA", languages: ["Français"], goal: "Master", year: "2027", institution: "Peu importe", project: "" };
+const ok = { level: "Licence", domain: "Informatique", destination: "France", budget: "2 à 4.000.000 FCFA", languages: ["Français"], goal: "Master", year: "2027", institution: "Peu importe", project: "" };
 
 describe("test d'orientation", () => {
   it("accepte des réponses valides", () => expect(validateAnswers(ok, QUESTIONS)).toEqual([]));

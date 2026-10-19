@@ -57,7 +57,7 @@ insert into orientation_questions (code,label,kind,options,sort_order) values
  ('level','Niveau actuel','single','["Bac","Licence","Master","Doctorat","Autre"]',1),
  ('domain','Domaine souhaité','single','["Informatique","Gestion","Finance","Droit","Santé","Ingénierie","Commerce","Communication","Sciences","Arts","Autre"]',2),
  ('destination','Destination','single','["France","Belgique","Luxembourg","Italie","Maroc","Je ne sais pas encore"]',3),
- ('budget','Budget annuel estimé','single','["Moins de 2 000 000 FCFA","2 à 4 000 000 FCFA","4 à 6 000 000 FCFA","Plus de 6 000 000 FCFA","Je ne sais pas"]',4),
+ ('budget','Budget annuel estimé','single','["Moins de 2.000.000 FCFA","2 à 4.000.000 FCFA","4 à 6.000.000 FCFA","Plus de 6.000.000 FCFA","Je ne sais pas"]',4),
  ('languages','Langues','multi','["Français","Anglais","Italien","Autre"]',5),
  ('goal','Objectif','single','["Licence","Master","Doctorat","Formation professionnelle"]',6),
  ('year','Année souhaitée','number','[]',7),

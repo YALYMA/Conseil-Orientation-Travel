@@ -19,7 +19,7 @@ describe("calcul du paiement en deux étapes", () => {
   it.each([0, -5, 1.5, NaN])("refuse %s", (v) => {
     expect(() => splitPayment(v)).toThrow(RangeError);
   });
-  it("formate en FCFA", () => expect(formatFcfa(37500)).toBe("37 500 FCFA"));
+  it("formate en FCFA", () => expect(formatFcfa(37500)).toBe("37.500 FCFA"));
 });
 
 describe("workflow de paiement", () => {
@@ -72,7 +72,7 @@ describe("liens WhatsApp", () => {
     });
     const link = whatsappLink("+221 77 000 00 01", msg);
     expect(link.startsWith("https://wa.me/221770000001?text=")).toBe(true);
-    expect(decodeURIComponent(link.split("text=")[1])).toContain("37 500 FCFA");
+    expect(decodeURIComponent(link.split("text=")[1])).toContain("37.500 FCFA");
   });
   it("refuse un numéro non configuré", () => {
     expect(() => whatsappLink("", "x")).toThrow();

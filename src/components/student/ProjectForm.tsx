@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { saveProject } from "@/app/app/actions";
 import type { Overview } from "@/lib/data/overview";
 
-const BUDGETS = ["Moins de 2 000 000 FCFA", "2 à 4 000 000 FCFA", "4 à 6 000 000 FCFA", "Plus de 6 000 000 FCFA", "Je ne sais pas"];
+const BUDGETS = ["Moins de 2.000.000 FCFA", "2 à 4.000.000 FCFA", "4 à 6.000.000 FCFA", "Plus de 6.000.000 FCFA", "Je ne sais pas"];
 
 export async function ProjectForm({ project, studentId }: { project: Overview["project"]; studentId?: string }) {
   const supabase = await createClient();

@@ -41,4 +41,28 @@ const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   ok("aucune promesse d'admission dans le diagnostic", !/serez accepté|admission garantie|visa garanti/i.test(txt));
   await p.screenshot({ path: "/tmp/qa/out/i-quiz-result.png", fullPage: false });
   ok("aucune erreur console / CSP (test)", p.errs.filter((e) => !noise.test(e)).length === 0, p.errs.filter((e) => !noise.test(e)).join(" | ")); await p.close(); }
+
+// 4. Bannière défilante « Pack Candidature Campus France » + format des prix
+{ const p = await mobilePage(); await p.goto(BASE + "/", { waitUntil: "load" }); await wait(1500);
+  const left = () => p.evaluate(() => document.querySelector(".animate-marquee").getBoundingClientRect().left);
+  const t = await p.evaluate(() => document.body.innerText);
+  ok("bannière : texte « Pack Candidature Campus France » présent", /Pack Candidature Campus France/i.test(t));
+  ok("note de non-affiliation à Campus France affichée", /n'est pas affilié à Campus France/.test(t));
+  const a = await left(); await wait(1500); const b2 = await left();
+  ok("le texte défile réellement", b2 < a - 5, `${Math.round(a)} → ${Math.round(b2)} px`);
+  const btn = await p.$('button[aria-label*="défilement"]');
+  await btn.click(); await wait(400);
+  const pressed = await p.evaluate(() => document.querySelector('button[aria-label*="défilement"]').getAttribute("aria-pressed"));
+  const c = await left(); await wait(1500); const d = await left();
+  ok("le bouton pause arrête le défilement", pressed === "true" && Math.abs(c - d) < 1, `aria-pressed=${pressed}, ${Math.round(c)} → ${Math.round(d)} px`);
+  await btn.click(); await wait(400); const e = await left(); await wait(1200); const f = await left();
+  ok("le bouton reprend le défilement", f < e - 5);
+  const box = await p.evaluate(() => { const r = document.querySelector('button[aria-label*="défilement"]').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; });
+  ok("bouton pause : cible tactile ≥ 44 px", box[0] >= 44 && box[1] >= 44, box.join("×"));
+  ok("prix au format avec point (40.000 FCFA, 75.000 FCFA)", /40\.000\s+FCFA/.test(t) && /75\.000\s+FCFA/.test(t) && /37\.500\s+FCFA/.test(t));
+  ok("aucun prix à l'ancien format (40 000 FCFA)", !/\d[ \u00a0\u202f]\d{3}\s+FCFA/.test(t));
+  await p.evaluate(() => document.querySelector(".animate-marquee").scrollIntoView({ block: "center" })); await wait(500);
+  await p.screenshot({ path: "/tmp/qa/out/i-ticker-mobile.png" });
+  ok("aucune erreur console / CSP (bannière)", p.errs.filter((x) => !noise.test(x)).length === 0, p.errs.filter((x) => !noise.test(x)).join(" | ")); await p.close(); }
+
 await b.close(); console.log(results.join("\n"));

@@ -7,6 +7,7 @@ import { DestinationRail } from "@/components/public/DestinationCard";
 import { StepsGrid } from "@/components/public/StepsGrid";
 import { PackRail } from "@/components/public/PackCard";
 import { AppPreview } from "@/components/public/AppPreview";
+import { PromoTicker } from "@/components/public/PromoTicker";
 import { CtaBand } from "@/components/public/CtaBand";
 import { Icon } from "@/components/visual/Icon";
 import { Blob, Wave } from "@/components/visual/Decor";
@@ -48,7 +49,11 @@ export default async function HomePage() {
         <div className="text-white"><Wave flip className="text-white" /></div>
         <div className="mx-auto max-w-6xl px-4 pb-16 sm:pb-20">
           <SectionTitle eyebrow="Nos packs" title="Un accompagnement à votre mesure" text="Vous ne payez que 50 % pour commencer ; le solde est dû à la finalisation des prestations prévues." align="center" />
-          <div className="mt-6"><PackRail packs={packs} /></div>
+          <div className="mx-auto mt-8 max-w-4xl">
+            <PromoTicker text="Pack Candidature Campus France" href={packs.some((p) => p.slug === "candidature") ? "/packs/candidature" : "/packs"} linkLabel="Voir le pack Candidature"
+              note="Accompagnement à la préparation et au suivi de votre candidature. Conseil-Orientation-Travel n'est pas affilié à Campus France." />
+          </div>
+          <div className="mt-4"><PackRail packs={packs} /></div>
           <p className="mt-2 text-center"><Link href="/packs" className="inline-flex min-h-11 items-center gap-2 font-semibold text-brand">Comparer tous les packs<Icon name="arrow" className="size-4" /></Link></p>
         </div>
         <div className="text-surface"><Wave className="-mb-px" /></div>

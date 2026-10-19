@@ -8,7 +8,7 @@ const ADV1 = "00000000-0000-0000-0000-0000000000d1";
 const ADV2 = "00000000-0000-0000-0000-0000000000d2";
 let db: PGlite;
 const q = (u: string | null, sql: string) => asUser(db, u, sql);
-const save = (u: string, sid: string, extra = "'master'") => q(u, `select save_project('${sid}', null, 'licence', 'informatique', 2027, 'Devenir ingénieur', ${extra === "'master'" ? "'2 à 4 000 000 FCFA'" : extra})`);
+const save = (u: string, sid: string, extra = "'master'") => q(u, `select save_project('${sid}', null, 'licence', 'informatique', 2027, 'Devenir ingénieur', ${extra === "'master'" ? "'2 à 4.000.000 FCFA'" : extra})`);
 
 beforeAll(async () => {
   db = await freshDb();
@@ -31,7 +31,7 @@ describe("projet de l'étudiant", () => {
     expect(r.rows).toHaveLength(0);
   });
   it("le conseiller assigné modifie, pas un autre ; année invalide refusée", async () => {
-    await q(ADV1, `select save_project('${A}', null, 'licence', 'informatique', 2028, 'Devenir ingénieur', '2 à 4 000 000 FCFA')`);
+    await q(ADV1, `select save_project('${A}', null, 'licence', 'informatique', 2028, 'Devenir ingénieur', '2 à 4.000.000 FCFA')`);
     await expect(q(ADV2, `select save_project('${A}', null, 'licence', 'informatique', 2028, 'x', 'y')`)).rejects.toThrow(/refusé/);
     await expect(q(ADV1, `select save_project('${A}', null, 'licence', 'informatique', 1999, 'x', 'y')`)).rejects.toThrow(/Année/);
   });
@@ -43,7 +43,7 @@ describe("projet de l'étudiant", () => {
   });
   it("une sauvegarde sans changement n'ajoute pas d'historique", async () => {
     const before = (await db.query("select 1 from audit_logs where action='project.updated'")).rows.length;
-    await q(ADV1, `select save_project('${A}', null, 'licence', 'informatique', 2028, 'Devenir ingénieur', '2 à 4 000 000 FCFA')`);
+    await q(ADV1, `select save_project('${A}', null, 'licence', 'informatique', 2028, 'Devenir ingénieur', '2 à 4.000.000 FCFA')`);
     expect((await db.query("select 1 from audit_logs where action='project.updated'")).rows.length).toBe(before);
   });
   it("seul le personnel assigné fait avancer visa/départ", async () => {
